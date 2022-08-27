@@ -12,6 +12,7 @@ class TableViewController: UITableViewController, UINavigationControllerDelegate
     var fileNameArray: [String] = []
     var fileAttributeArray: [String] = []
     let fileManager = FileManager.default
+    var defaults = UserDefaults.standard
     
     override func loadView() {
         super.loadView()
@@ -44,11 +45,31 @@ class TableViewController: UITableViewController, UINavigationControllerDelegate
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = .brown
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .organize,
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add,
                                                                  target: self,
                                                                  action: #selector(goToImagePicker))
+ 
     }
+    override func viewWillLayoutSubviews() {
+        
+        super.viewWillLayoutSubviews()
+
+ 
+    }
+    override func viewWillAppear(_ animated: Bool) {
     
+        super.viewWillAppear(animated)
+        if self.defaults.bool(forKey: "isSorted") {
+            self.fileNameArray = self.fileNameArray.sorted(by: <)
+            self.tableView.reloadData()
+        } else {
+            self.fileNameArray = self.fileNameArray.sorted(by: >)
+            self.tableView.reloadData()
+        }
+        print(self.defaults.bool(forKey: "isSorted"))
+        
+    }
+
     @objc func goToImagePicker(){
         print("Pick")
         let imagePickerController = UIImagePickerController()
@@ -131,6 +152,13 @@ extension TableViewController: UIImagePickerControllerDelegate {
             try! fileManager.createFile(atPath: imagePath.path, contents: data)
             let attributes = try fileManager.attributesOfItem(atPath: imagePath.path) as NSDictionary
             fileNameArray.append(String(name)+".jpg")
+            if self.defaults.bool(forKey: "isSorted") {
+                self.fileNameArray = self.fileNameArray.sorted(by: <)
+                self.tableView.reloadData()
+            } else {
+                self.fileNameArray = self.fileNameArray.sorted(by: >)
+                self.tableView.reloadData()
+            }
             let date = attributes.fileCreationDate()!
             let dateFormatter = DateFormatter()
             dateFormatter.dateStyle = .short
